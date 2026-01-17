@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { Ellipsis, Eye, Plus } from "lucide-react";
 import {
   DropdownMenu,
@@ -28,19 +27,50 @@ import {
 import Link from "next/link";
 import TableSkeleton from "@/components/table-style/TableSkeleton";
 
-const types = [
+// Type definitions
+type UserType = "Academy" | "Freelancer";
+type StatusType = "APPROVED" | "PENDING" | "REJECTED";
+
+interface UserData {
+  id: number | string;
+  name: string;
+  type: UserType;
+  email: string;
+  phone: string;
+  region: string;
+  regDate: Date | string;
+  status: StatusType;
+  profileImage?: string;
+}
+
+interface SimpleTableProps {
+  data?: UserData[];
+  type?: "class" | "experience";
+}
+
+interface ColumnConfig {
+  label: string;
+  key: keyof UserData | "actions";
+}
+
+interface TypeFilter {
+  label: string;
+  value: UserType | "all";
+}
+
+const types: TypeFilter[] = [
   { label: "All Types", value: "all" },
   { label: "Academy", value: "Academy" },
   { label: "Freelancer", value: "Freelancer" },
 ];
 
-export default function SimpleTable({ data = [], type = "class" }) {
-  const [search, setSearch] = useState("");
-  const [filterType, setFilterType] = useState("all");
-  const [loading, setLoading] = useState(false);
+export default function SimpleTable({ data = [], type = "class" }: SimpleTableProps) {
+  const [search, setSearch] = useState<string>("");
+  const [filterType, setFilterType] = useState<UserType | "all">("all");
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Simple data structure for demo - replace with your actual data
-  const demoData = [
+  const demoData: UserData[] = [
     {
       id: 1,
       name: "John Doe",
@@ -65,7 +95,7 @@ export default function SimpleTable({ data = [], type = "class" }) {
     },
   ];
 
-  const tableData = data.length > 0 ? data : demoData;
+  const tableData: UserData[] = data.length > 0 ? data : demoData;
 
   const filteredData = useMemo(() => {
     let filtered = [...tableData];
@@ -87,7 +117,7 @@ export default function SimpleTable({ data = [], type = "class" }) {
   }, [search, filterType, tableData]);
 
   // Simple table columns configuration
-  const columns = [
+  const columns: ColumnConfig[] = [
     { label: "Name", key: "name" },
     { label: "Type", key: "type" },
     { label: "Email", key: "email" },
@@ -98,6 +128,14 @@ export default function SimpleTable({ data = [], type = "class" }) {
     { label: "Actions", key: "actions" },
   ];
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+  };
+
+  const handleTypeChange = (value: string) => {
+    setFilterType(value as UserType | "all");
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -105,18 +143,18 @@ export default function SimpleTable({ data = [], type = "class" }) {
           <Input
             placeholder="Search by name, email, phone..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             className="w-[300px]"
           />
 
-          <Select value={filterType} onValueChange={setFilterType}>
+          <Select value={filterType} onValueChange={handleTypeChange}>
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="Filter by Type" />
             </SelectTrigger>
             <SelectContent>
-              {types.map((type) => (
-                <SelectItem key={type.value} value={type.value}>
-                  {type.label}
+              {types.map((typeItem) => (
+                <SelectItem key={typeItem.value} value={typeItem.value}>
+                  {typeItem.label}
                 </SelectItem>
               ))}
             </SelectContent>
