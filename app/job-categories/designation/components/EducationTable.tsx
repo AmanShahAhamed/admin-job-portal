@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { Ellipsis, Eye, Plus } from "lucide-react";
 import {
   DropdownMenu,
@@ -27,45 +26,63 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import TableSkeleton from "@/components/table-style/TableSkeleton";
+import { useQuery } from "@tanstack/react-query";
+import { stat } from "fs";
 
-const types = [
-  { label: "All Types", value: "all" },
-  { label: "Academy", value: "Academy" },
-  { label: "Freelancer", value: "Freelancer" },
+// Type definitions
+type UserType = "active" | "inactive";
+type StatusType = "active" | "inactive";
+
+interface UserData {
+  id: number | string;
+  name: string;
+  status: StatusType;
+}
+
+interface SimpleTableProps {
+  data?: UserData[];
+  type?: "class" | "experience";
+}
+
+interface ColumnConfig {
+  label: string;
+  key: keyof UserData | "actions";
+}
+
+interface TypeFilter {
+  label: string;
+  value: UserType | "all";
+}
+
+const types: TypeFilter[] = [
+  { label: "All", value: "all" },
+  { label: "Active", value: "active" },
+  { label: "Inactive", value: "inactive" },
 ];
 
-export default function SimpleTable({ data = [], type = "class" }) {
-  const [search, setSearch] = useState("");
-  const [filterType, setFilterType] = useState("all");
-  const [loading, setLoading] = useState(false);
+export default function SimpleTable({
+  data = [],
+  type = "class",
+}: SimpleTableProps) {
+  const [search, setSearch] = useState<string>("");
+  const [filterType, setFilterType] = useState<UserType | "all">("all");
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Simple data structure for demo - replace with your actual data
-  const demoData = [
+  const demoData: UserData[] = [
     {
       id: 1,
       name: "John Doe",
-      type: "Academy",
-      email: "john@example.com",
-      phone: "+1234567890",
-      region: "North America",
-      regDate: new Date(),
-      status: "APPROVED",
-      profileImage: "/avatar.jpg",
+      status: "active",
     },
     {
       id: 2,
       name: "Jane Smith",
-      type: "Freelancer",
-      email: "jane@example.com",
-      phone: "+0987654321",
-      region: "Europe",
-      regDate: new Date(),
-      status: "PENDING",
-      profileImage: "/avatar.jpg",
+      status: "inactive",
     },
   ];
 
-  const tableData = data.length > 0 ? data : demoData;
+  const tableData: UserData[] = data.length > 0 ? data : demoData;
 
   const filteredData = useMemo(() => {
     let filtered = [...tableData];
@@ -74,29 +91,47 @@ export default function SimpleTable({ data = [], type = "class" }) {
       const lowerSearch = search.toLowerCase();
       filtered = filtered.filter((item) =>
         Object.values(item).some((value) =>
-          String(value).toLowerCase().includes(lowerSearch)
-        )
+          String(value).toLowerCase().includes(lowerSearch),
+        ),
       );
     }
 
     if (filterType !== "all") {
-      filtered = filtered.filter((item) => item.type === filterType);
+      filtered = filtered.filter((item) => item.status === filterType);
     }
 
     return filtered;
   }, [search, filterType, tableData]);
 
   // Simple table columns configuration
-  const columns = [
+  const columns: ColumnConfig[] = [
+    { label: "Id", key: "id" },
     { label: "Name", key: "name" },
-    { label: "Type", key: "type" },
-    { label: "Email", key: "email" },
-    { label: "Phone", key: "phone" },
-    { label: "Region", key: "region" },
-    { label: "Reg. Date", key: "regDate" },
     { label: "Status", key: "status" },
     { label: "Actions", key: "actions" },
   ];
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+  };
+
+  const handleTypeChange = (value: string) => {
+    setFilterType(value as UserType | "all");
+  };
+
+  const { isPending, error } = useQuery({
+    queryKey: ["repoData"],
+    queryFn: () =>
+      fetch("https://api.github.com/repos/TanStack/query").then((res) =>
+        res.json(),
+      ),
+  });
+
+  const fn = (status: string) => {
+    if (status === "active") return "bg-green-500";
+    if (status === "inactive") return "bg-yellow-500";
+    return "bg-red-500";
+  };
 
   return (
     <div>
@@ -105,18 +140,18 @@ export default function SimpleTable({ data = [], type = "class" }) {
           <Input
             placeholder="Search by name, email, phone..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-[300px]"
+            onChange={handleSearchChange}
+            className="w-75"
           />
 
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-[130px]">
+          <Select value={filterType} onValueChange={handleTypeChange}>
+            <SelectTrigger className="w-32.5">
               <SelectValue placeholder="Filter by Type" />
             </SelectTrigger>
             <SelectContent>
-              {types.map((type) => (
-                <SelectItem key={type.value} value={type.value}>
-                  {type.label}
+              {types.map((typeItem) => (
+                <SelectItem key={typeItem.value} value={typeItem.value}>
+                  {typeItem.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -159,41 +194,19 @@ export default function SimpleTable({ data = [], type = "class" }) {
                   <TableRow key={item.id}>
                     <TableCell className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <img
-                          className="w-6 h-6 rounded-full object-cover"
-                          src={item.profileImage || "/default-avatar.png"}
-                          alt={item.name}
-                        />
+                        <span className="text-sm">{item.id}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
+                      <div className="flex items-center gap-2">
                         <span className="text-sm">{item.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-sm">
-                      {item.type || "N/A"}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-sm">
-                      {item.email || "N/A"}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-sm">
-                      {item.phone || "N/A"}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-sm">
-                      {item.region || "N/A"}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-sm">
-                      {item.regDate
-                        ? format(new Date(item.regDate), "dd-MM-yyyy")
-                        : "N/A"}
-                    </TableCell>
+
                     <TableCell className="px-4 py-3 text-sm">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`h-2 w-2 rounded-full ${
-                            item.status === "APPROVED"
-                              ? "bg-green-500"
-                              : item.status === "PENDING"
-                              ? "bg-yellow-500"
-                              : "bg-red-500"
-                          }`}
+                          className={`h-2 w-2 rounded-full ${fn(item.status)}`}
                         />
                         {item.status || "N/A"}
                       </div>

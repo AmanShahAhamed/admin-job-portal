@@ -64,7 +64,10 @@ const types: TypeFilter[] = [
   { label: "Freelancer", value: "Freelancer" },
 ];
 
-export default function SimpleTable({ data = [], type = "class" }: SimpleTableProps) {
+export default function SimpleTable({
+  data = [],
+  type = "class",
+}: SimpleTableProps) {
   const [search, setSearch] = useState<string>("");
   const [filterType, setFilterType] = useState<UserType | "all">("all");
   const [loading, setLoading] = useState<boolean>(false);
@@ -104,8 +107,8 @@ export default function SimpleTable({ data = [], type = "class" }: SimpleTablePr
       const lowerSearch = search.toLowerCase();
       filtered = filtered.filter((item) =>
         Object.values(item).some((value) =>
-          String(value).toLowerCase().includes(lowerSearch)
-        )
+          String(value).toLowerCase().includes(lowerSearch),
+        ),
       );
     }
 
@@ -229,8 +232,8 @@ export default function SimpleTable({ data = [], type = "class" }: SimpleTablePr
                             item.status === "APPROVED"
                               ? "bg-green-500"
                               : item.status === "PENDING"
-                              ? "bg-yellow-500"
-                              : "bg-red-500"
+                                ? "bg-yellow-500"
+                                : "bg-red-500"
                           }`}
                         />
                         {item.status || "N/A"}
@@ -268,3 +271,4 @@ export default function SimpleTable({ data = [], type = "class" }: SimpleTablePr
     </div>
   );
 }
+

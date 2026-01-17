@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
@@ -52,9 +52,9 @@ const items: MenuItem[] = [
     title: "Job categories",
     icon: GraduationCap,
     children: [
-      { title: "Education", url: "/job-categories/education-wise" },
-      { title: "State", url: "/job-categories/state-wise" },
-       { title: "Designation", url: "/job-categories/designation-wise" },
+      { title: "Education", url: "/job-categories/education" },
+      { title: "State", url: "/job-categories/state" },
+      { title: "Designation", url: "/job-categories/designation" },
     ],
   },
   {
@@ -114,10 +114,10 @@ export function AppSidebar() {
 
                 if (isDropdown) {
                   const isActiveDropdown = item.children?.some((child) =>
-                    pathname.includes(child.url)
+                    pathname.includes(child.url),
                   );
                   const isOpen = openDropdown === item.title;
-                  
+
                   return (
                     <SidebarMenuItem key={item.title}>
                       <div
@@ -125,7 +125,7 @@ export function AppSidebar() {
                           "rounded-md px-2 py-2 transition-colors flex items-center justify-between gap-2 cursor-pointer",
                           {
                             "bg-[#F1F5F9]": isActiveDropdown || isOpen,
-                          }
+                          },
                         )}
                         onClick={() => toggleDropdown(item.title)}
                       >
@@ -150,7 +150,7 @@ export function AppSidebar() {
                                     "text-sm py-1 px-2 rounded hover:bg-slate-100",
                                     {
                                       "bg-[#F1F5F9] font-medium": isActive,
-                                    }
+                                    },
                                   )}
                                 >
                                   {child.title}
@@ -173,7 +173,7 @@ export function AppSidebar() {
                         "rounded-md px-2 py-2 transition-colors flex items-center gap-2",
                         {
                           "bg-[#F1F5F9]": isActive,
-                        }
+                        },
                       )}
                     >
                       {item.url ? (

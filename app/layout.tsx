@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppLayoutClient } from "@/components/layout-client";
-import QueryProvider from "@/app/components/QueryProvider";
+import { ReactQueryProvider } from "../lib";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,22 +16,24 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Admin Job Portal",
-  description: "Admin dashboard",
+  description:
+    "Admin dashboard for managing jobs, employers, candidates, and platform activity.",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning={true}
       >
-        <QueryProvider>
+        <ReactQueryProvider>
           <AppLayoutClient>{children}</AppLayoutClient>
-        </QueryProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );
