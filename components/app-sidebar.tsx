@@ -1,5 +1,9 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
+"use client"
 
+import { useState } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import clsx from "clsx";
 import {
   Sidebar,
   SidebarContent,
@@ -9,37 +13,48 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
-  LayoutDashboard,
+  Home,
   GraduationCap,
   CalendarDays,
-  CreditCard,
+  LayoutList,
+  CalendarCheck,
+  Percent,
   Megaphone,
   Gift,
-  Users2,
-  ChevronsUpDown,
-  ChevronDown,
-  LayoutList,
-  Percent,
-  CalendarCheck,
   Layers2,
+  ChevronDown,
+  LucideIcon,
 } from "lucide-react";
 
-// Menu items.
-const items = [
+// Type definitions
+interface MenuItemChild {
+  title: string;
+  url: string;
+}
+
+interface MenuItem {
+  title: string;
+  url?: string;
+  icon: LucideIcon;
+  children?: MenuItemChild[];
+}
+
+// Menu items with proper typing
+const items: MenuItem[] = [
   {
-    title:"Dashboard",
+    title: "Dashboard",
     url: "/dashboard",
     icon: Home,
   },
-
-   {
+  {
     title: "Job categories",
     icon: GraduationCap,
     children: [
-      { title: "Education wise", url: "/job-categories/education-wise" },
-      { title: "State wise", url: "/job-categories/state-wise" },
+      { title: "Education", url: "/job-categories/education-wise" },
+      { title: "State", url: "/job-categories/state-wise" },
+       { title: "Designation", url: "/job-categories/designation-wise" },
     ],
   },
   {
@@ -47,7 +62,7 @@ const items = [
     url: "/announcement",
     icon: CalendarDays,
   },
-   {
+  {
     title: "Admit Card ",
     url: "/admit-card",
     icon: LayoutList,
@@ -57,7 +72,7 @@ const items = [
     url: "/answer-keys",
     icon: CalendarCheck,
   },
-   {
+  {
     title: "Result",
     url: "/result",
     icon: Percent,
@@ -77,9 +92,16 @@ const items = [
     url: "/yojana",
     icon: Layers2,
   },
-]
+];
 
 export function AppSidebar() {
+  const pathname = usePathname();
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  const toggleDropdown = (title: string) => {
+    setOpenDropdown(openDropdown === title ? null : title);
+  };
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -87,20 +109,92 @@ export function AppSidebar() {
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {items.map((item) => {
+                const isDropdown = item.children && item.children.length > 0;
+
+                if (isDropdown) {
+                  const isActiveDropdown = item.children?.some((child) =>
+                    pathname.includes(child.url)
+                  );
+                  const isOpen = openDropdown === item.title;
+                  
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <div
+                        className={clsx(
+                          "rounded-md px-2 py-2 transition-colors flex items-center justify-between gap-2 cursor-pointer",
+                          {
+                            "bg-[#F1F5F9]": isActiveDropdown || isOpen,
+                          }
+                        )}
+                        onClick={() => toggleDropdown(item.title)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </div>
+                        <ChevronDown
+                          className={clsx("h-4 w-4 transition-transform", {
+                            "rotate-180": isOpen,
+                          })}
+                        />
+                      </div>
+                      {isOpen && (
+                        <div className="pl-6 pt-2">
+                          {item.children?.map((child) => {
+                            const isActive = pathname === child.url;
+                            return (
+                              <Link key={child.title} href={child.url}>
+                                <div
+                                  className={clsx(
+                                    "text-sm py-1 px-2 rounded hover:bg-slate-100",
+                                    {
+                                      "bg-[#F1F5F9] font-medium": isActive,
+                                    }
+                                  )}
+                                >
+                                  {child.title}
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </SidebarMenuItem>
+                  );
+                }
+
+                const isActive = item.url ? pathname.includes(item.url) : false;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      className={clsx(
+                        "rounded-md px-2 py-2 transition-colors flex items-center gap-2",
+                        {
+                          "bg-[#F1F5F9]": isActive,
+                        }
+                      )}
+                    >
+                      {item.url ? (
+                        <Link href={item.url} className="w-full">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      ) : (
+                        <div className="flex items-center gap-2 w-full">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </div>
+                      )}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }
