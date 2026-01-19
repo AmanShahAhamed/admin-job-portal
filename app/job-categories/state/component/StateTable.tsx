@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { z } from "zod";
 import {
   Table,
   TableBody,
@@ -37,18 +38,27 @@ import {
 } from "../../utils/category.constant";
 import { useStateList } from "@/services/job-category";
 import { ICategoryList } from "@/services/job-category/job-category";
+import { CustomForm } from "../../../ui/fom";
+import { CustomModal } from "../../../ui/model";
+
+const getJobCategoryLabel = (value: string) => {
+  return (
+    JobCategoryOptions.find((option) => option.value == value)?.label || "N/A"
+  );
+};
+
+const getStatusColor = (status: CategoryStatus) => {
+  if (status == "0") return "bg-green-500";
+  if (status == "1") return "bg-red-500";
+  return "bg-gray-500";
+};
 
 export default function StateTable() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<CategoryStatus>("-1");
+  const [showModal, setShowModal] = useState(true);
 
   const { data: states = [], isLoading: listLoading } = useStateList();
-
-  const getStatusColor = (status: CategoryStatus) => {
-    if (status == "0") return "bg-green-500";
-    if (status == "1") return "bg-red-500";
-    return "bg-gray-500";
-  };
 
   const renderRow = (row: ICategoryList) =>
     (Object.entries(row) as [TCategoryListKey, TCategoryListValue][]).map(
@@ -60,7 +70,7 @@ export default function StateTable() {
                 <span
                   className={`h-2 w-2 rounded-full ${getStatusColor(value as CategoryStatus)}`}
                 />
-                {value || "N/A"}
+                {getJobCategoryLabel(value as string)}
               </div>
             </TableCell>
           );
@@ -162,6 +172,26 @@ export default function StateTable() {
             </TableBody>
           </Table>
         </div>
+      )}
+      {showModal && (
+        <CustomModal
+          open={showModal}
+          onClose={() => setShowModal(false)}
+          header="Add State"
+          footer={undefined}
+        >
+          <CustomForm
+            onSubmit={(val) => console.log(val)}
+            formFields={[
+              {
+                label: "Name",
+                name: "name",
+                validation: z.string().min(1, "Name is required"),
+              },
+            ]}
+            submitButtonLabel="Save"
+          />
+        </CustomModal>
       )}
     </div>
   );
