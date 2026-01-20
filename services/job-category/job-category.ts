@@ -4,15 +4,15 @@ export enum Status {
     PENDING,
 }
 
-interface IListParam {
+export interface IListParam {
     status?: Status
 }
 
-interface ICreateCategory {
+export interface ICreateCategory {
     name: string;
 }
 
-export interface IUpdateCategory extends PartialType(ICreateCategory) {
+export interface IUpdateCategory extends Partial<ICreateCategory> {
     id: number;
     status?: Status
 }

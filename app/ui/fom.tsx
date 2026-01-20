@@ -71,7 +71,7 @@ export const CustomForm = <T extends Record<string, any>>({
                 <FormControl>
                   <Input
                     {...config}
-                    value={String(field.value)}
+                    value={field.value ? String(field.value) : ""}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     ref={field.ref}

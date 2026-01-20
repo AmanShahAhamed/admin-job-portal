@@ -1,14 +1,6 @@
 "use client";
 import { useState } from "react";
 import { z } from "zod";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -18,39 +10,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Ellipsis, Eye, Plus } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+
+import { CategoryStatus } from "../../utils/category";
+import { JobCategoryOptions } from "../../utils/category.constant";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import Link from "next/link";
-import TableSkeleton from "@/components/table-style/TableSkeleton";
-import {
-  CategoryStatus,
-  TCategoryListKey,
-  TCategoryListValue,
-} from "../../utils/category";
-import {
-  CategoryColumns,
-  JobCategoryOptions,
-} from "../../utils/category.constant";
-import { useStateList } from "@/services/job-category";
-import { ICategoryList } from "@/services/job-category/job-category";
+  useStateCreate,
+  useStateList,
+  useStateUpdate,
+} from "@/services/job-category";
 import { CustomForm } from "../../../ui/fom";
 import { CustomModal } from "../../../ui/model";
+import { CustomTable, CustomTableColumn } from "../../../ui/custom-table";
+import { Label } from "../../../../components/ui/label";
+import { Switch } from "../../../../components/ui/switch";
+import {
+  ICategoryList,
+  ICreateCategory,
+  Status,
+} from "@/services/job-category/job-category";
 
 const getJobCategoryLabel = (value: string) => {
   return (
     JobCategoryOptions.find((option) => option.value == value)?.label || "N/A"
   );
-};
-
-const getStatusColor = (status: CategoryStatus) => {
-  if (status == "0") return "bg-green-500";
-  if (status == "1") return "bg-red-500";
-  return "bg-gray-500";
 };
 
 export default function StateTable() {
@@ -60,29 +43,49 @@ export default function StateTable() {
 
   const { data: states = [], isLoading: listLoading } = useStateList();
 
-  const renderRow = (row: ICategoryList) =>
-    (Object.entries(row) as [TCategoryListKey, TCategoryListValue][]).map(
-      ([key, value]) => {
-        if (key === "status") {
-          return (
-            <TableCell key={key} className="px-4 py-3 text-sm">
-              <div className="flex items-center gap-2">
-                <span
-                  className={`h-2 w-2 rounded-full ${getStatusColor(value as CategoryStatus)}`}
-                />
-                {getJobCategoryLabel(value as string)}
-              </div>
-            </TableCell>
-          );
-        }
+  const { mutate: createState } = useStateCreate();
+  const { mutate: updateState } = useStateUpdate();
 
-        return (
-          <TableCell key={key} className="px-4 py-3 text-sm">
-            {value || "N/A"}
-          </TableCell>
-        );
-      },
-    );
+  const Columns: CustomTableColumn<ICategoryList>[] = [
+    {
+      key: "id",
+      dataIndex: "id",
+      name: "ID",
+    },
+    {
+      key: "name",
+      dataIndex: "name",
+      name: "Name",
+    },
+    {
+      key: "status",
+      dataIndex: "status",
+      name: "Status",
+      render: (record, value) => (
+        <div className="flex items-center space-x-2">
+          <Switch
+            className="cursor-pointer"
+            id="airplane-mode"
+            checked={value === Status.ACTIVE}
+            onChange={() => updateState({ ...record, status: value as Status })}
+          />
+          <Label htmlFor="airplane-mode">
+            {getJobCategoryLabel(`${value}`)}
+          </Label>
+        </div>
+      ),
+    },
+    {
+      key: "action",
+      name: "Action",
+      render: () => (
+        <div className="flex items-center space-x-4">
+          <Pencil size={14} className="cursor-pointer" />
+          <Trash2 size={14} className="cursor-pointer text-red-600" />
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div>
@@ -111,68 +114,15 @@ export default function StateTable() {
             </SelectContent>
           </Select>
         </div>
-        <button className="flex items-center gap-1.25 bg-[#FEEA4F] hover:bg-yellow-300 text-black font-medium text-[14px] py-2 px-4 rounded-[6px] shadow-sm transition cursor-pointer">
+        <button
+          onClick={() => setShowModal((p) => !p)}
+          className="flex items-center gap-1.25 bg-[#FEEA4F] hover:bg-yellow-300 text-black font-medium text-[14px] py-2 px-4 rounded-[6px] shadow-sm transition cursor-pointer"
+        >
           <Plus size={18} /> Add New
         </button>
       </div>
 
-      {listLoading ? (
-        <TableSkeleton />
-      ) : (
-        <div className="overflow-hidden rounded-[5px] border border-[#E2E8F0]">
-          <Table>
-            <TableHeader className="bg-[#F2F2F2]">
-              <TableRow>
-                {CategoryColumns.map((col) => (
-                  <TableHead key={col} className="px-4 py-3 whitespace-nowrap">
-                    {col}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {!states?.length ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={CategoryColumns.length}
-                    className="text-center py-8"
-                  >
-                    No data found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                states.map((state) => (
-                  <TableRow key={state.id}>
-                    {renderRow(state)}
-                    <TableCell className="px-4 py-3">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="p-1 rounded hover:bg-gray-100">
-                            <Ellipsis size={18} />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                          <DropdownMenuItem asChild>
-                            <Link
-                              href={`/${
-                                state.name === "class" ? "class" : "experience"
-                              }-provider/${state.id}`}
-                              className="flex items-center gap-2 cursor-pointer"
-                            >
-                              <Eye size={16} />
-                              View Details
-                            </Link>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <CustomTable isLoading={listLoading} columns={Columns} data={states} />
       {showModal && (
         <CustomModal
           open={showModal}
@@ -181,15 +131,19 @@ export default function StateTable() {
           footer={undefined}
         >
           <CustomForm
-            onSubmit={(val) => console.log(val)}
             formFields={[
               {
                 label: "Name",
                 name: "name",
+                placeholder: "Enter State Name",
                 validation: z.string().min(1, "Name is required"),
               },
             ]}
             submitButtonLabel="Save"
+            onSubmit={(val) => {
+              createState(val as ICreateCategory);
+              setShowModal(false);
+            }}
           />
         </CustomModal>
       )}

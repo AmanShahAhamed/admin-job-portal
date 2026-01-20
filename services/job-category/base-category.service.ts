@@ -13,7 +13,7 @@ export const useCategoryList = (
     params?: IListParam
 ) =>
     useQuery<ICategoryList[]>({
-        queryKey: [key, "list", params],
+        queryKey: [key, params],
         queryFn: async () => {
             const { data } = await axios.get(url, { params });
             return data;
@@ -22,7 +22,7 @@ export const useCategoryList = (
 
 export const useCategoryCreate = (url: string, key: string) =>
     useMutation({
-        mutationKey: [key, "create"],
+        mutationKey: [key],
         mutationFn: async (payload: ICreateCategory) => {
             const { data } = await axios.post(url, payload);
             return data;
@@ -31,7 +31,7 @@ export const useCategoryCreate = (url: string, key: string) =>
 
 export const useCategoryUpdate = (url: string, key: string) =>
     useMutation({
-        mutationKey: [key, "update"],
+        mutationKey: [key],
         mutationFn: async (payload: IUpdateCategory) => {
             const { data } = await axios.patch(url, payload);
             return data;
