@@ -6,6 +6,7 @@ import {
     IListParam,
     IUpdateCategory,
 } from "./job-category";
+import { queryClient } from "../../lib/react-query/react-query.client";
 
 export const useCategoryList = (
     url: string,
@@ -22,18 +23,43 @@ export const useCategoryList = (
 
 export const useCategoryCreate = (url: string, key: string) =>
     useMutation({
-        mutationKey: [key],
+        mutationKey: [key, "create"],
         mutationFn: async (payload: ICreateCategory) => {
             const { data } = await axios.post(url, payload);
             return data;
         },
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [key],
+            });
+        },
+
     });
 
 export const useCategoryUpdate = (url: string, key: string) =>
     useMutation({
-        mutationKey: [key],
+        mutationKey: [key, "update"],
         mutationFn: async (payload: IUpdateCategory) => {
             const { data } = await axios.patch(url, payload);
             return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [key],
+            });
+        },
+    });
+
+export const useCategoryDelete = (url: string, key: string) =>
+    useMutation({
+        mutationKey: [key, "delete"],
+        mutationFn: async (id: number) => {
+            const { data } = await axios.delete(url + `/${id}`,);
+            return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [key],
+            });
         },
     });

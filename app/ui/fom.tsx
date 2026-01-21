@@ -60,7 +60,7 @@ export const CustomForm = <T extends Record<string, any>>({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {formFields.map((config) => (
+        {formFields.map(({ defaultValue, ...config }) => (
           <RHFFormField
             key={String(config.name)}
             control={form.control}
@@ -69,6 +69,7 @@ export const CustomForm = <T extends Record<string, any>>({
               <FormItem>
                 <FormLabel>{config.label}</FormLabel>
                 <FormControl>
+                  {/* TODO add number limit functionality */}
                   <Input
                     {...config}
                     value={field.value ? String(field.value) : ""}

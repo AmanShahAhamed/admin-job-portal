@@ -6,6 +6,6 @@ export const API_ROUTES = {
 
 
 export const ENVIRONMENTS = {
-    LOCAL: "http://localhost:3002",
+    LOCAL: "http://localhost:3010",
     PRODUCTION: "http://139.59.69.232:3010",
 };

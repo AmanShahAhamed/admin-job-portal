@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,19 +15,21 @@ import { CategoryStatus } from "../../utils/category";
 import { JobCategoryOptions } from "../../utils/category.constant";
 import {
   useStateCreate,
+  useStateDelete,
   useStateList,
   useStateUpdate,
 } from "@/services/job-category";
-import { CustomForm } from "../../../ui/fom";
-import { CustomModal } from "../../../ui/model";
 import { CustomTable, CustomTableColumn } from "../../../ui/custom-table";
 import { Label } from "../../../../components/ui/label";
 import { Switch } from "../../../../components/ui/switch";
 import {
   ICategoryList,
   ICreateCategory,
+  IUpdateCategory,
   Status,
 } from "@/services/job-category/job-category";
+import { MutationModal } from "../../component/mutation-modal";
+import { DeleteAlert } from "../../../ui/custom-alert";
 
 const getJobCategoryLabel = (value: string) => {
   return (
@@ -39,12 +40,21 @@ const getJobCategoryLabel = (value: string) => {
 export default function StateTable() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<CategoryStatus>("-1");
-  const [showModal, setShowModal] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<ICategoryList | null>(
+    null,
+  );
 
   const { data: states = [], isLoading: listLoading } = useStateList();
 
   const { mutate: createState } = useStateCreate();
   const { mutate: updateState } = useStateUpdate();
+  const { mutate: deleteState } = useStateDelete();
+
+  const onUpdateClick = (record: ICategoryList) => {
+    setActiveCategory(record);
+    setShowModal(true);
+  };
 
   const Columns: CustomTableColumn<ICategoryList>[] = [
     {
@@ -67,7 +77,12 @@ export default function StateTable() {
             className="cursor-pointer"
             id="airplane-mode"
             checked={value === Status.ACTIVE}
-            onChange={() => updateState({ ...record, status: value as Status })}
+            onCheckedChange={(checked) =>
+              updateState({
+                ...record,
+                status: checked ? Status.ACTIVE : Status.INACTIVE,
+              })
+            }
           />
           <Label htmlFor="airplane-mode">
             {getJobCategoryLabel(`${value}`)}
@@ -78,10 +93,16 @@ export default function StateTable() {
     {
       key: "action",
       name: "Action",
-      render: () => (
+      render: (record) => (
         <div className="flex items-center space-x-4">
-          <Pencil size={14} className="cursor-pointer" />
-          <Trash2 size={14} className="cursor-pointer text-red-600" />
+          <Pencil
+            size={14}
+            className="cursor-pointer"
+            onClick={() => onUpdateClick(record)}
+          />
+          <DeleteAlert onConfirm={() => deleteState(record.id)}>
+            <Trash2 size={14} className="cursor-pointer text-red-600" />
+          </DeleteAlert>
         </div>
       ),
     },
@@ -124,28 +145,18 @@ export default function StateTable() {
 
       <CustomTable isLoading={listLoading} columns={Columns} data={states} />
       {showModal && (
-        <CustomModal
-          open={showModal}
-          onClose={() => setShowModal(false)}
-          header="Add State"
-          footer={undefined}
-        >
-          <CustomForm
-            formFields={[
-              {
-                label: "Name",
-                name: "name",
-                placeholder: "Enter State Name",
-                validation: z.string().min(1, "Name is required"),
-              },
-            ]}
-            submitButtonLabel="Save"
-            onSubmit={(val) => {
-              createState(val as ICreateCategory);
-              setShowModal(false);
-            }}
-          />
-        </CustomModal>
+        <MutationModal
+          mutation={(p) =>
+            activeCategory
+              ? updateState(p as IUpdateCategory)
+              : createState(p as ICreateCategory)
+          }
+          btnLabel={activeCategory ? "Update" : "Create"}
+          show={showModal}
+          setShow={(val) => setShowModal(val)}
+          init={activeCategory ?? undefined}
+          clearState={() => setActiveCategory(null)}
+        />
       )}
     </div>
   );
