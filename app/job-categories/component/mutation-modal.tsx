@@ -10,6 +10,7 @@ interface IProps {
   setShow: (val: boolean) => void;
   clearState: () => void;
   init?: IUpdateCategory;
+  name: string;
 }
 
 export const MutationModal: React.FC<IProps> = ({
@@ -19,6 +20,7 @@ export const MutationModal: React.FC<IProps> = ({
   setShow,
   clearState,
   init,
+  name,
 }) => {
   return (
     <CustomModal
@@ -27,7 +29,7 @@ export const MutationModal: React.FC<IProps> = ({
         setShow(false);
         clearState();
       }}
-      header="Add State"
+      header={"Add " + name}
       footer={undefined}
     >
       <CustomForm
@@ -36,7 +38,7 @@ export const MutationModal: React.FC<IProps> = ({
             label: "Name",
             name: "name",
             defaultValue: init?.name ?? "",
-            placeholder: "Enter State Name",
+            placeholder: `Enter ${name} Name`,
             validation: z.string().min(1, "Name is required"),
           },
         ]}

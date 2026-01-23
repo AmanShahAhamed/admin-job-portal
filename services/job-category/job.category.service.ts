@@ -2,7 +2,7 @@ import { API_ROUTES } from "../../api";
 import { useCategoryCreate, useCategoryDelete, useCategoryList, useCategoryUpdate } from "./base-category.service";
 import { IListParam } from "./job-category";
 
-const createServiceHooks = (route: string, resourceKey: string) => ({
+export const createServiceHooks = (route: string, resourceKey: string) => ({
     useList: (params?: IListParam) =>
         useCategoryList(route, resourceKey, params),
     useCreate: () => useCategoryCreate(route, resourceKey),

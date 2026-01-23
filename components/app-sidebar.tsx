@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import clsx from "clsx";
 import {
   Sidebar,
@@ -84,7 +85,7 @@ const items: MenuItem[] = [
   },
   {
     title: "Certificate",
-    url: "/Certificate",
+    url: "/certificate",
     icon: Gift,
   },
   {
@@ -93,6 +94,8 @@ const items: MenuItem[] = [
     icon: Layers2,
   },
 ];
+
+import logo from "../public/logo.png";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -106,7 +109,10 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel className="m-2">
+            <Image src={logo} alt="Logo" width={40} height={40} />
+            <p className="text-xl font-semibold p-2">Naukri Post</p>
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {

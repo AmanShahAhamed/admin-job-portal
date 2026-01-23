@@ -1,35 +1,29 @@
 "use client";
+import { UseMutateFunction, UseQueryResult } from "@tanstack/react-query";
+import {
+  ICategoryList,
+  ICreateCategory,
+  IListParam,
+  IUpdateCategory,
+  Status,
+} from "../../../services/job-category";
+import { JobCategoryOptions } from "../utils/category.constant";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { CategoryStatus } from "../utils/category";
+import { CustomTable, CustomTableColumn } from "../../ui/custom-table";
+import { Switch } from "../../../components/ui/switch";
+import { Label } from "../../../components/ui/label";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { DeleteAlert } from "../../ui/custom-alert";
+import { Input } from "../../../components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-
-import { Plus, Pencil, Trash2 } from "lucide-react";
-
-import { CategoryStatus } from "../../utils/category";
-import { JobCategoryOptions } from "../../utils/category.constant";
-import {
-  useStateCreate,
-  useStateDelete,
-  useStateList,
-  useStateUpdate,
-} from "@/services/job-category";
-import { CustomTable, CustomTableColumn } from "../../../ui/custom-table";
-import { Label } from "../../../../components/ui/label";
-import { Switch } from "../../../../components/ui/switch";
-import {
-  ICategoryList,
-  ICreateCategory,
-  IUpdateCategory,
-  Status,
-} from "@/services/job-category/job-category";
-import { MutationModal } from "../../component/mutation-modal";
-import { DeleteAlert } from "../../../ui/custom-alert";
+} from "../../../components/ui/select";
+import { MutationModal } from "./mutation-modal";
 
 const getJobCategoryLabel = (value: string) => {
   return (
@@ -37,25 +31,34 @@ const getJobCategoryLabel = (value: string) => {
   );
 };
 
-export default function StateTable() {
+interface IJobCategoryProps {
+  name: string;
+  useList: (
+    params?: IListParam | undefined,
+  ) => UseQueryResult<ICategoryList[], Error>;
+  createState: UseMutateFunction<any, Error, ICreateCategory, unknown>;
+  updateState: UseMutateFunction<any, Error, IUpdateCategory, unknown>;
+  deleteState: UseMutateFunction<any, Error, number, unknown>;
+}
+export const JobCategory: React.FC<IJobCategoryProps> = ({
+  name,
+  useList,
+  createState,
+  updateState,
+  deleteState,
+}) => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<CategoryStatus>("-1");
   const [showModal, setShowModal] = useState(false);
   const [activeCategory, setActiveCategory] = useState<ICategoryList | null>(
     null,
   );
-
-  const { data: states = [], isLoading: listLoading } = useStateList();
-
-  const { mutate: createState } = useStateCreate();
-  const { mutate: updateState } = useStateUpdate();
-  const { mutate: deleteState } = useStateDelete();
+  const { data: states = [], isLoading: listLoading } = useList();
 
   const onUpdateClick = (record: ICategoryList) => {
     setActiveCategory(record);
     setShowModal(true);
   };
-
   const Columns: CustomTableColumn<ICategoryList>[] = [
     {
       key: "id",
@@ -80,6 +83,7 @@ export default function StateTable() {
             onCheckedChange={(checked) =>
               updateState({
                 ...record,
+                id: Number(record.id),
                 status: checked ? Status.ACTIVE : Status.INACTIVE,
               })
             }
@@ -146,6 +150,7 @@ export default function StateTable() {
       <CustomTable isLoading={listLoading} columns={Columns} data={states} />
       {showModal && (
         <MutationModal
+          name={name}
           mutation={(p) =>
             activeCategory
               ? updateState(p as IUpdateCategory)
@@ -160,4 +165,4 @@ export default function StateTable() {
       )}
     </div>
   );
-}
+};

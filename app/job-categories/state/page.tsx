@@ -1,18 +1,27 @@
-import StateTable from "./component/StateTable";
+"use client";
+import {
+  useStateCreate,
+  useStateDelete,
+  useStateList,
+  useStateUpdate,
+} from "../../../services/job-category";
+import { AppContainer } from "../../ui/app-container";
+import { JobCategory } from "../component/category";
+
 const page = () => {
+  const { mutate: createState } = useStateCreate();
+  const { mutate: updateState } = useStateUpdate();
+  const { mutate: deleteState } = useStateDelete();
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row items-end md:items-end justify-between mb-6">
-        <div>
-          <h1 className="text-[#0E0F11] text-[28px] leading-none font-semibold">
-            States
-          </h1>
-        </div>
-      </div>{" "}
-      <div>
-        <StateTable />
-      </div>
-    </div>
+    <AppContainer title={"States"}>
+      <JobCategory
+        name={"State"}
+        useList={useStateList}
+        createState={createState}
+        updateState={updateState}
+        deleteState={deleteState}
+      />
+    </AppContainer>
   );
 };
 

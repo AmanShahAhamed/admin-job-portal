@@ -2,7 +2,7 @@ export const API_ROUTES = {
     Designations: "/designations",
     Educations: "/educations",
     States: "/states",
-}
+} as const
 
 
 export const ENVIRONMENTS = {
